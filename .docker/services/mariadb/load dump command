@@ -1,0 +1,1 @@
+mysql -u mint -p mint -h 127.0.0.1 -P 33063 < .docker/services/mariadb/dump.sql

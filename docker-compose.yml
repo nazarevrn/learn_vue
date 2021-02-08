@@ -1,0 +1,59 @@
+#https://blog.denisbondar.com/post/phpstorm_docker_xdebug
+version: '3.7'
+services:
+
+  nginx:
+    depends_on:
+    - php
+    build:
+      context: ./
+      dockerfile: .docker/services/nginx/Dockerfile
+      args:
+        APP_PORT: $APP_PORT
+    volumes:
+      - "./:/var/www/html"
+    ports:
+      - "${APP_PORT}:80"  
+    networks:
+      - internal  
+    links:
+      - php
+
+  php:
+    build:
+      context: ./
+      dockerfile: .docker/services/php/Dockerfile
+      args:
+        APP_PORT: $APP_PORT
+    volumes:
+      - "./:/var/www/html"
+    environment:
+      DB_NAME: ${DB_DATABASE}
+      DB_USER: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      PHP_IDE_CONFIG: "serverName=Docker"
+    networks:
+      - internal  
+  #DB service
+  db-service:
+    image: postgres:13
+    networks:
+      - internal  
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT_HOST}:3306"
+
+#Volumes
+volumes:
+  db:
+
+networks:
+  internal:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.220.0/28
